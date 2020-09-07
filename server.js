@@ -2,6 +2,7 @@ import express from "express";
 import mongoose from "mongoose";
 import Messages from "./models/dbMessages.js";
 import Pusher from "pusher";
+import cors from "cors";
 
 //app config
 const app = express();
@@ -21,10 +22,32 @@ db.once("open", () => {
 
   const msgCollection = db.collection("messagecontents");
   const changeStream = msgCollection.watch();
+
+  changeStream.on("change", (change) => {
+    if (change.operationType === "insert") {
+      const messageDetails = change.fullDocument;
+      pusher.trigger("messages", "inserted", {
+        name: messageDetails.name,
+        message: messageDetails.message,
+        receiver: messageDetails.receiver,
+        timestamp: messageDetails.timestamp,
+      });
+    } else {
+      console.log("Error triggering pusher");
+    }
+  });
 });
 
 // middlewares
 app.use(express.json());
+app.use(cors());
+
+//TODO: DONT DO IT ON PROD MODE
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+  next();
+});
 
 // DB config
 const connection_url =

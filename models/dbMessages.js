@@ -4,7 +4,7 @@ const whatsappSchema = mongoose.Schema({
   message: String,
   name: String,
   timestamp: String,
-  reveived: Boolean
+  receiver: Boolean
 });
 
-export default mongoose.model('messageContent', whatsappSchema);
+export default mongoose.model('messagecontents', whatsappSchema);
